@@ -12,15 +12,16 @@ import argparse
 import imutils
 import cv2
 
+
 def midpoint(ptA, ptB):
 	return ((ptA[0] + ptB[0]) * 0.5, (ptA[1] + ptB[1]) * 0.5)
 
+
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image", required=True,
-	help="path to the input image")
+ap.add_argument("-i", "--image", required=True, help="path to the input image")
 ap.add_argument("-w", "--width", type=float, required=True,
-	help="width of the left-most object in the image (in inches)")
+                help="width of the left-most object in the image (in inches)")
 args = vars(ap.parse_args())
 
 # load the image, convert it to grayscale, and blur it slightly
@@ -35,8 +36,7 @@ edged = cv2.dilate(edged, None, iterations=1)
 edged = cv2.erode(edged, None, iterations=1)
 
 # find contours in the edge map
-cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL,
-	cv2.CHAIN_APPROX_SIMPLE)
+cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 cnts = cnts[0] if imutils.is_cv2() else cnts[1]
 
 # sort the contours from left-to-right and initialize the
@@ -46,35 +46,35 @@ pixelsPerMetric = None
 
 # loop over the contours individually
 for c in cnts:
-	# if the contour is not sufficiently large, ignore it
-	if cv2.contourArea(c) < 100:
+    # if the contour is not sufficiently large, ignore it
+    if cv2.contourArea(c) < 100:
 		continue
 
 	# compute the rotated bounding box of the contour
 	orig = image.copy()
-	box = cv2.minAreaRect(c)
-	box = cv2.cv.BoxPoints(box) if imutils.is_cv2() else cv2.boxPoints(box)
-	box = np.array(box, dtype="int")
+    box = cv2.minAreaRect(c)
+    box = cv2.cv.BoxPoints(box) if imutils.is_cv2() else cv2.boxPoints(box)
+    box = np.array(box, dtype="int")
 
-	# order the points in the contour such that they appear
+    # order the points in the contour such that they appear
 	# in top-left, top-right, bottom-right, and bottom-left
 	# order, then draw the outline of the rotated bounding
 	# box
 	box = perspective.order_points(box)
-	cv2.drawContours(orig, [box.astype("int")], -1, (0, 255, 0), 2)
+    cv2.drawContours(orig, [box.astype("int")], -1, (0, 255, 0), 2)
 
-	# loop over the original points and draw them
-	for (x, y) in box:
+    # loop over the original points and draw them
+    for (x, y) in box:
 		cv2.circle(orig, (int(x), int(y)), 5, (0, 0, 255), -1)
 
 	# unpack the ordered bounding box, then compute the midpoint
 	# between the top-left and top-right coordinates, followed by
 	# the midpoint between bottom-left and bottom-right coordinates
 	(tl, tr, br, bl) = box
-	(tltrX, tltrY) = midpoint(tl, tr)
-	(blbrX, blbrY) = midpoint(bl, br)
+    (tltrX, tltrY) = midpoint(tl, tr)
+    (blbrX, blbrY) = midpoint(bl, br)
 
-	# compute the midpoint between the top-left and top-right points,
+    # compute the midpoint between the top-left and top-right points,
 	# followed by the midpoint between the top-righ and bottom-right
 	(tlblX, tlblY) = midpoint(tl, bl)
 	(trbrX, trbrY) = midpoint(tr, br)
